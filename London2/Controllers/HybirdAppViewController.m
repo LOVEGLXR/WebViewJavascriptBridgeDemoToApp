@@ -36,6 +36,7 @@
 #pragma mark - init Views
 
 - (void)setupViews {
+//    简单的初始化 注册方法   WebViewJavascriptBridge 有详细的介绍
     [WebViewJavascriptBridge enableLogging];
 
     NSString *fileString = [[NSBundle mainBundle] pathForResource:@"index" ofType:@"html"];
@@ -59,6 +60,8 @@
     }
     return _webView;
 }
+
+//点击按钮 调用注册好的方法
 - (IBAction)nativeButtonAction:(id)sender {
     id data = @{ @"greetingFromObjC": @"Hi there, JS!" };
     [_bridge callHandler:@"testJavascriptHandler" data:data responseCallback:^(id response) {
@@ -67,6 +70,7 @@
 
 }
 
+//懒加载
 - (HyBridBridge *)hybridBridge {
     if (!_hybridBridge) {
         _hybridBridge = [[HyBridBridge alloc] init];
@@ -76,10 +80,12 @@
 
 #pragma mark - HybridUrlHanlder
 
-- (NSArray *)actionNames {
+- (NSArray *)actionNames {  //定义可支持的方法名称
     return @[ @"login", @"tabbar", @"push", @"showToast", @"pay" ];
 }
 
+//HTML 部分 需要定义 方法名称
+//传参的时候 带上方法名字  我这里写的是actionName
 - (BOOL)handleDictionAry:(NSDictionary *)dictionary callback:(HybridCallbackBlock)callbackBlock {
     NSString *actionTag = dictionary[@"actionName"];
     if ([actionTag isEqualToString:@"login"]) {
@@ -101,6 +107,8 @@
 
     return NO;
 }
+
+#pragma mark - 方法的实现
 
 - (void)nativeLogin {
     LoginViewController *loginVC = [[LoginViewController alloc]init];
@@ -125,10 +133,11 @@
     [self.navigationController pushViewController:detailVC animated:YES];
 }
 
+
 - (void)nativePushPayViewControllerWithOrderID:(NSInteger)orderID Callback:(HybridCallbackBlock)callbackBlock{
     LDPayViewController * payVC = [[LDPayViewController alloc]init];
     payVC.orderId = orderID;
-    payVC.resultBlock = ^(BOOL isPaySucc){
+    payVC.resultBlock = ^(BOOL isPaySucc){  //回调参数  Block 相信大家都会用吧
         if (isPaySucc){
             callbackBlock(YES,@{ @"code": @(10000), @"message" : @"支付成功"});
         }else{
